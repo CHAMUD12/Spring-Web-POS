@@ -5,6 +5,7 @@ import org.example.springwebpos.customObj.CustomerResponse;
 import org.example.springwebpos.dao.CustomerDAO;
 import org.example.springwebpos.dto.CustomerDTO;
 import org.example.springwebpos.entity.CustomerEntity;
+import org.example.springwebpos.exception.CustomerNotFoundException;
 import org.example.springwebpos.exception.DataPersistFailedException;
 import org.example.springwebpos.util.AppUtil;
 import org.example.springwebpos.util.Mapping;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -34,7 +37,16 @@ public class CustomerServiceIMPL implements CustomerService {
 
     @Override
     public void updateCustomer(CustomerDTO customerDTO) {
-
+        Optional<CustomerEntity> tmpCustomer = customerDAO.findById(customerDTO.getId());
+        if (!tmpCustomer.isPresent()) {
+            throw new CustomerNotFoundException("Customer Not Found");
+        } else {
+            tmpCustomer.get().setName(customerDTO.getName());
+            tmpCustomer.get().setAddress(customerDTO.getAddress());
+            tmpCustomer.get().setMobile(customerDTO.getMobile());
+            tmpCustomer.get().setProfilePic(customerDTO.getProfilePic());
+            customerDAO.save(tmpCustomer.get());
+        }
     }
 
     @Override

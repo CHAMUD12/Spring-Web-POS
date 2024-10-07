@@ -2,6 +2,7 @@ package org.example.springwebpos.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.springwebpos.dto.CustomerDTO;
+import org.example.springwebpos.exception.CustomerNotFoundException;
 import org.example.springwebpos.exception.DataPersistFailedException;
 import org.example.springwebpos.service.CustomerService;
 import org.example.springwebpos.util.AppUtil;
@@ -9,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -52,4 +50,33 @@ public class CustomerController {
         }
     }
 
+    @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> updateCustomer(
+            @PathVariable("id") String id,
+            @RequestPart("updateName") String updateName,
+            @RequestPart("updateAddress") String updateAddress,
+            @RequestPart("updateMobile") String updateMobile,
+            @RequestPart("updateProfilePic") MultipartFile updateProfilePic
+    ) {
+        try {
+            byte[] imageBytes = updateProfilePic.getBytes();
+            String updateBase64ProfilePic = AppUtil.toBase64ProfilePic(imageBytes);
+
+            // Create the CustomerDTO object
+            var updateCustomer = new CustomerDTO();
+            updateCustomer.setId(id);
+            updateCustomer.setName(updateName);
+            updateCustomer.setAddress(updateAddress);
+            updateCustomer.setMobile(updateMobile);
+            updateCustomer.setProfilePic(updateBase64ProfilePic);
+
+            // Call the service to update the customer
+            customerService.updateCustomer(updateCustomer);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (CustomerNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
