@@ -1,6 +1,7 @@
 package org.example.springwebpos.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springwebpos.customObj.CustomerErrorResponse;
 import org.example.springwebpos.customObj.CustomerResponse;
 import org.example.springwebpos.dao.CustomerDAO;
 import org.example.springwebpos.dto.CustomerDTO;
@@ -61,7 +62,11 @@ public class CustomerServiceIMPL implements CustomerService {
 
     @Override
     public CustomerResponse getSelectedCustomer(String customerId) {
-        return null;
+        if(customerDAO.existsById(customerId)){
+            return mapping.convertToCUstomerDTO(customerDAO.getReferenceById(customerId));
+        }else {
+            return new CustomerErrorResponse(0,"Customer not found");
+        }
     }
 
     @Override

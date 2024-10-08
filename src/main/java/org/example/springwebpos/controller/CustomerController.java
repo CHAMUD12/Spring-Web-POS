@@ -1,6 +1,7 @@
 package org.example.springwebpos.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springwebpos.customObj.CustomerResponse;
 import org.example.springwebpos.dto.CustomerDTO;
 import org.example.springwebpos.exception.CustomerNotFoundException;
 import org.example.springwebpos.exception.DataPersistFailedException;
@@ -90,5 +91,10 @@ public class CustomerController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CustomerResponse getSelectedCustomer(@PathVariable ("id") String id)  {
+        return customerService.getSelectedCustomer(id);
     }
 }
