@@ -1,7 +1,14 @@
 package org.example.springwebpos.dto;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class OrderDTO implements SuperDTO {
     private String orderId;
     private String orderDate;
@@ -11,5 +18,5 @@ public class OrderDTO implements SuperDTO {
     private double subTotal;
     private double cash;
     private double balance;
-    private List<ItemDTO> items;
+    private List<OrderDetailDTO> orderDetails = new ArrayList<>();
 }

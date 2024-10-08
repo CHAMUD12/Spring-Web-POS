@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ItemDTO implements SuperDTO {
-    private String code;
+public class OrderDetailDTO implements SuperDTO {
+    private String itemCode;
     private String description;
-    private String price;
-    private String qty;
+    private double unitPrice;
+    private int quantity;
+    private double totalPrice;
+
 }

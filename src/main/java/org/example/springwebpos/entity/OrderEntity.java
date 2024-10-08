@@ -24,7 +24,7 @@ public class OrderEntity implements SuperEntity {
     private double subTotal;
     private double cash;
     private double balance;
-    @OneToMany
-    @JoinColumn(name = "orderId")
-    private List<ItemEntity> items;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderDetailEntity> orderDetails;
+
 }
