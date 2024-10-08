@@ -1,6 +1,7 @@
 package org.example.springwebpos.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springwebpos.customObj.ItemResponse;
 import org.example.springwebpos.dto.ItemDTO;
 import org.example.springwebpos.exception.DataPersistFailedException;
 import org.example.springwebpos.exception.ItemNotFound;
@@ -58,5 +59,10 @@ public class ItemController {
         }catch (Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping(value = "/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ItemResponse getSelectedItem(@PathVariable ("code") String code)  {
+        return itemService.getSelectedItem(code);
     }
 }

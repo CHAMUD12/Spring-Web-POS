@@ -43,4 +43,7 @@ public class Mapping {
     public ItemEntity convertToItemEntity(ItemDTO itemDTO) {
         return modelMapper.map(itemDTO, ItemEntity.class);
     }
+    public ItemDTO convertToItemDTO(ItemEntity code){
+        return  modelMapper.map(code, ItemDTO.class);
+    }
 }
