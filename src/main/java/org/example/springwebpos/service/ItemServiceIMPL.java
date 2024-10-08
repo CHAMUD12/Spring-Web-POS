@@ -68,6 +68,6 @@ public class ItemServiceIMPL implements ItemService {
 
     @Override
     public List<ItemDTO> getAllItems() {
-        return List.of();
+        return mapping.convertItemListToDTO(itemDAO.findAll());
     }
 }

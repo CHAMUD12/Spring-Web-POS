@@ -46,4 +46,7 @@ public class Mapping {
     public ItemDTO convertToItemDTO(ItemEntity code){
         return  modelMapper.map(code, ItemDTO.class);
     }
+    public List<ItemDTO> convertItemListToDTO(List<ItemEntity> itemEntities) {
+        return modelMapper.map(itemEntities, new TypeToken<List<ItemDTO>>() {}.getType());
+    }
 }

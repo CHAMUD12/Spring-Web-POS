@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/items")
 @RequiredArgsConstructor
@@ -64,5 +66,10 @@ public class ItemController {
     @GetMapping(value = "/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ItemResponse getSelectedItem(@PathVariable ("code") String code)  {
         return itemService.getSelectedItem(code);
+    }
+
+    @GetMapping(value = "allitems", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<ItemDTO> getAllItems() {
+        return itemService.getAllItems();
     }
 }
