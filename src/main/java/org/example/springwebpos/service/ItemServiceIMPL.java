@@ -49,7 +49,12 @@ public class ItemServiceIMPL implements ItemService {
 
     @Override
     public void deleteItem(String code) {
-
+        Optional<ItemEntity> findId = itemDAO.findById(code);
+        if(!findId.isPresent()){
+            throw new ItemNotFound("Item not found");
+        }else {
+            itemDAO.deleteById(code);
+        }
     }
 
     @Override
