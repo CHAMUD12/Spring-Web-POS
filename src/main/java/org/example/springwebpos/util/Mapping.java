@@ -1,8 +1,10 @@
 package org.example.springwebpos.util;
 
 import org.example.springwebpos.dto.CustomerDTO;
+import org.example.springwebpos.dto.ItemDTO;
 import org.example.springwebpos.dto.OrderDTO;
 import org.example.springwebpos.entity.CustomerEntity;
+import org.example.springwebpos.entity.ItemEntity;
 import org.example.springwebpos.entity.OrderEntity;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -35,5 +37,10 @@ public class Mapping {
     }
     public List<CustomerDTO> convertCustomerListToDTO(List<CustomerEntity> customerEntities) {
         return modelMapper.map(customerEntities, new TypeToken<List<CustomerDTO>>() {}.getType());
+    }
+
+    //Item matters mapping
+    public ItemEntity convertToItemEntity(ItemDTO itemDTO) {
+        return modelMapper.map(itemDTO, ItemEntity.class);
     }
 }
