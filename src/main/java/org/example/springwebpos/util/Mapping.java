@@ -18,13 +18,13 @@ public class Mapping {
     @Autowired
     private ModelMapper modelMapper;
 
-    public OrderDTO convertToDTO(OrderEntity order){
+    public OrderDTO convertToOrderDTO(OrderEntity order){
         return  modelMapper.map(order, OrderDTO.class);
     }
-    public OrderEntity convertToEntity(OrderDTO dto){
+    public OrderEntity convertToOrderEntity(OrderDTO dto){
         return modelMapper.map(dto, OrderEntity.class);
     }
-    public List<OrderDTO> convertToDTO(List<OrderEntity> orders){
+    public List<OrderDTO> convertToOrderListDTO(List<OrderEntity> orders){
         return modelMapper.map(orders, new TypeToken<List<OrderDTO>>() {}.getType());
     }
 
