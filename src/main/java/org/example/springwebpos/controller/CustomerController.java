@@ -7,6 +7,8 @@ import org.example.springwebpos.exception.CustomerNotFoundException;
 import org.example.springwebpos.exception.DataPersistFailedException;
 import org.example.springwebpos.service.CustomerService;
 import org.example.springwebpos.util.AppUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomerController {
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
+
     @Autowired
     private CustomerService customerService;
 
@@ -30,6 +34,7 @@ public class CustomerController {
             @RequestPart("address") String address,
             @RequestPart("mobile") String mobile,
             @RequestPart("profilePic") MultipartFile profilePic) {
+        logger.info("Request to save customer: Name={}, Address={}", name, address);
 
         // Handle profile picture
         try {
@@ -45,10 +50,13 @@ public class CustomerController {
 
             // Send to the service layer
             customerService.saveCustomer(buildCustomerDTO);
+            logger.info("Customer saved successfully: Name={}", name);
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (DataPersistFailedException e) {
+            logger.error("Failed to save customer: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            logger.error("Unexpected error while saving customer: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -61,6 +69,7 @@ public class CustomerController {
             @RequestPart("updateMobile") String updateMobile,
             @RequestPart("updateProfilePic") MultipartFile updateProfilePic
     ) {
+        logger.info("Request to update customer: ID={}", id);
         try {
             byte[] imageBytes = updateProfilePic.getBytes();
             String updateBase64ProfilePic = AppUtil.toBase64ProfilePic(imageBytes);
@@ -75,33 +84,42 @@ public class CustomerController {
 
             // Call the service to update the customer
             customerService.updateCustomer(updateCustomer);
+            logger.info("Customer updated successfully: ID={}", id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (CustomerNotFoundException e) {
+            logger.warn("Customer not found for update: ID={}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
+            logger.error("Unexpected error while updating customer: ID={}, Error={}", id, e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCustomer(@PathVariable("id") String customerId) {
+        logger.info("Request to delete customer: ID={}", customerId);
         try {
             customerService.deleteCustomer(customerId);
+            logger.info("Customer deleted successfully: ID={}", customerId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (CustomerNotFoundException e) {
+            logger.warn("Customer not found for deletion: ID={}", customerId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
+            logger.error("Unexpected error while deleting customer: ID={}, Error={}", customerId, e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public CustomerResponse getSelectedCustomer(@PathVariable ("id") String id)  {
+        logger.info("Request to get customer: ID={}", id);
         return customerService.getSelectedCustomer(id);
     }
 
     @GetMapping(value = "allcustomers", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<CustomerDTO> getAllNotes(){
+        logger.info("Request to get all customers");
         return customerService.getAllCustomers();
     }
 }
