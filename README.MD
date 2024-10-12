@@ -64,7 +64,7 @@ This application follows a well-organized, layered architecture:
 
 ## License
 
-
+### [MIT](https://github.com/CHAMUD12/Spring-Web-POS/blob/master/License.txt) License
 
 ## Copyright
 
