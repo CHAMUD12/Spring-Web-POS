@@ -80,21 +80,56 @@ public class ItemController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping(value = "/{code}",produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateNote(@PathVariable ("code") String itemCode, @RequestBody ItemDTO item) {
+    public ResponseEntity<ItemErrorResponse> updateItem(
+            @PathVariable("code") String itemCode, @RequestBody ItemDTO item) {
         try {
-            if (item == null && (itemCode == null || item.equals(""))) {
-                logger.warn("Invalid item data or item code: {}", itemCode);
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (item == null || itemCode == null || itemCode.isEmpty()) {
+                logger.warn("Invalid update request: itemCode={}, item={}", itemCode, item);
+                return new ResponseEntity<>(new ItemErrorResponse("error",
+                        "Item and itemCode cannot be null or empty"), HttpStatus.BAD_REQUEST);
+            }
+            if (item.getDescription() == null || item.getDescription().isEmpty()) {
+                logger.warn("Item description is missing during update for itemCode: {}", itemCode);
+                return new ResponseEntity<>(new ItemErrorResponse("error",
+                        "Description is required"), HttpStatus.BAD_REQUEST);
+            }
+            if (item.getDescription().length() > 50) {
+                logger.warn("Item description exceeds max length for itemCode: {}", itemCode);
+                return new ResponseEntity<>(new ItemErrorResponse("error",
+                        "Description must be 50 characters or less"), HttpStatus.BAD_REQUEST);
+            }
+            if (item.getPrice() <= 0) {
+                logger.warn("Invalid price: Price must be a positive number for itemCode: {}", itemCode);
+                return new ResponseEntity<>(new ItemErrorResponse("error",
+                        "Price must be a positive number"), HttpStatus.BAD_REQUEST);
+            }
+            if (Double.toString(item.getPrice()).matches(".*[a-zA-Z]+.*")) {
+                logger.warn("Invalid price format: Price should not contain letters for itemCode: {}", itemCode);
+                return new ResponseEntity<>(new ItemErrorResponse("error",
+                        "Price must be a valid number without letters"), HttpStatus.BAD_REQUEST);
+            }
+            if (item.getQty() < 0) {
+                logger.warn("Invalid quantity: Quantity cannot be negative for itemCode: {}", itemCode);
+                return new ResponseEntity<>(new ItemErrorResponse("error",
+                        "Quantity cannot be negative"), HttpStatus.BAD_REQUEST);
+            }
+            if (Integer.toString(item.getQty()).matches(".*[a-zA-Z]+.*")) {
+                logger.warn("Invalid quantity format: Quantity should not contain letters for itemCode: {}", itemCode);
+                return new ResponseEntity<>(new ItemErrorResponse("error",
+                        "Quantity must be a valid number without letters"), HttpStatus.BAD_REQUEST);
             }
             itemService.updateItem(itemCode, item);
-            logger.info("Item with code {} updated successfully", itemCode);
+            logger.info("Item updated successfully: {}", itemCode);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
         } catch (ItemNotFound e) {
-            logger.warn("Item with code {} not found", itemCode);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            logger.error("Item not found: {}", itemCode);
+            return new ResponseEntity<>(new ItemErrorResponse("error",
+                    "Item not found"), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            logger.error("An unexpected error occurred while updating item with code {}", itemCode, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.error("Internal server error while updating item: {}", e.getMessage());
+            return new ResponseEntity<>(new ItemErrorResponse("error",
+                    "Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
