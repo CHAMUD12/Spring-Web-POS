@@ -27,41 +27,48 @@ public class ItemController {
     public ResponseEntity<ItemErrorResponse> createItem(@RequestBody ItemDTO item) {
         if (item == null) {
             logger.warn("Item is null");
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Item cannot be null"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error", "Item cannot be null"),
+                    HttpStatus.BAD_REQUEST);
         }
 
         // Validate Description
         if (item.getDescription() == null || item.getDescription().isEmpty()) {
             logger.warn("Item description is missing");
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Description is required"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error", "Description is required"),
+                    HttpStatus.BAD_REQUEST);
         }
         if (item.getDescription().length() > 50) {
             logger.warn("Item description exceeds max length: {}", item.getDescription());
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Description must be 50 characters or less"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error",
+                    "Description must be 50 characters or less"), HttpStatus.BAD_REQUEST);
         }
 
         // Validate Price
         if (item.getPrice() <= 0) {
             logger.warn("Invalid price: Price must be a positive number");
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Price must be a positive number"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error",
+                    "Price must be a positive number"), HttpStatus.BAD_REQUEST);
         }
 
         // Validate that price does not contain letters
         if (Double.toString(item.getPrice()).matches(".[a-zA-Z]+.")) {
             logger.warn("Invalid price format: Price should not contain letters");
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Price must be a valid number without letters"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error",
+                    "Price must be a valid number without letters"), HttpStatus.BAD_REQUEST);
         }
 
         // Validate Quantity
         if (item.getQty() < 0) {
             logger.warn("Invalid quantity: Quantity cannot be negative");
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Quantity cannot be negative"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error",
+                    "Quantity cannot be negative"), HttpStatus.BAD_REQUEST);
         }
 
         // Validate that quantity does not contain letters
         if (Integer.toString(item.getQty()).matches(".[a-zA-Z]+.")) {
             logger.warn("Invalid quantity format: Quantity should not contain letters");
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Quantity must be a valid number without letters"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error",
+                    "Quantity must be a valid number without letters"), HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -71,10 +78,12 @@ public class ItemController {
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (DataPersistFailedException e) {
             logger.error("Data persistence failed: {}", e.getMessage());
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Data persistence failed"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ItemErrorResponse("error", "Data persistence failed"),
+                    HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error("Internal server error: {}", e.getMessage());
-            return new ResponseEntity<>(new ItemErrorResponse("error", "Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ItemErrorResponse("error", "Internal server error"),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
