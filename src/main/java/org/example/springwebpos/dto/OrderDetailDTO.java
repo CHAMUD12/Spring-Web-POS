@@ -13,5 +13,4 @@ public class OrderDetailDTO implements SuperDTO {
     private double unitPrice;
     private int quantity;
     private double totalPrice;
-
 }

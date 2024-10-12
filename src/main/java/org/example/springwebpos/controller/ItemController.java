@@ -79,7 +79,7 @@ public class ItemController {
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PatchMapping(value = "/{code}",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemErrorResponse> updateItem(
             @PathVariable("code") String itemCode, @RequestBody ItemDTO item) {
         try {
@@ -133,23 +133,23 @@ public class ItemController {
         }
     }
 
-    @DeleteMapping(value ="/{code}" )
-    public ResponseEntity<Void> deleteItem(@PathVariable ("code") String itemCode) {
+    @DeleteMapping(value = "/{code}")
+    public ResponseEntity<Void> deleteItem(@PathVariable("code") String itemCode) {
         try {
             itemService.deleteItem(itemCode);
             logger.info("Item with code {} deleted successfully", itemCode);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }catch (ItemNotFound e){
+        } catch (ItemNotFound e) {
             logger.warn("Item with code {} not found", itemCode);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("An unexpected error occurred while deleting item with code {}", itemCode, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping(value = "/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ItemResponse getSelectedItem(@PathVariable ("code") String code)  {
+    public ItemResponse getSelectedItem(@PathVariable("code") String code) {
         logger.info("Fetching item with code {}", code);
         return itemService.getSelectedItem(code);
     }

@@ -21,9 +21,10 @@ import javax.sql.DataSource;
 @EnableTransactionManagement
 public class WebAppRootConfig {
     @Bean
-    public ModelMapper modelMapper(){
+    public ModelMapper modelMapper() {
         return new ModelMapper();
     }
+
     @Bean
     public DataSource dataSource() {
         var dmds = new DriverManagerDataSource();

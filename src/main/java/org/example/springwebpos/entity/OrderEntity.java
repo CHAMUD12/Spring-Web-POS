@@ -26,5 +26,4 @@ public class OrderEntity implements SuperEntity {
     private double balance;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDetailEntity> orderDetails;
-
 }

@@ -47,11 +47,11 @@ public class ItemServiceIMPL implements ItemService {
     @Override
     public void updateItem(String itemCode, ItemDTO incomeItemDTO) {
         logger.info("Updating item with code: {}", itemCode);
-        Optional<ItemEntity> tmpItemEntity= itemDAO.findById(itemCode);
-        if(!tmpItemEntity.isPresent()){
+        Optional<ItemEntity> tmpItemEntity = itemDAO.findById(itemCode);
+        if (!tmpItemEntity.isPresent()) {
             logger.warn("Item with code {} not found", itemCode);
             throw new ItemNotFound("Item not found");
-        }else {
+        } else {
             tmpItemEntity.get().setDescription(incomeItemDTO.getDescription());
             tmpItemEntity.get().setPrice(incomeItemDTO.getPrice());
             tmpItemEntity.get().setQty(incomeItemDTO.getQty());
@@ -63,10 +63,10 @@ public class ItemServiceIMPL implements ItemService {
     public void deleteItem(String code) {
         logger.info("Deleting item with code: {}", code);
         Optional<ItemEntity> findId = itemDAO.findById(code);
-        if(!findId.isPresent()){
+        if (!findId.isPresent()) {
             logger.warn("Item with code {} not found", code);
             throw new ItemNotFound("Item not found");
-        }else {
+        } else {
             itemDAO.deleteById(code);
             logger.info("Item with code {} deleted successfully", code);
         }
@@ -75,12 +75,13 @@ public class ItemServiceIMPL implements ItemService {
     @Override
     public ItemResponse getSelectedItem(String code) {
         logger.info("Fetching item with code: {}", code);
-        if(itemDAO.existsById(code)){
+        if (itemDAO.existsById(code)) {
             return mapping.convertToItemDTO(itemDAO.getReferenceById(code));
-        }else {
+        } else {
             logger.warn("Item with code {} not found", code);
-            return new ItemErrorResponse("0","Item not found");
-        }      }
+            return new ItemErrorResponse("0", "Item not found");
+        }
+    }
 
     @Override
     public List<ItemDTO> getAllItems() {

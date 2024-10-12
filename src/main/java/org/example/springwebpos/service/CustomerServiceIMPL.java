@@ -77,11 +77,11 @@ public class CustomerServiceIMPL implements CustomerService {
     @Override
     public CustomerResponse getSelectedCustomer(String customerId) {
         logger.info("Fetching customer: ID={}", customerId);
-        if(customerDAO.existsById(customerId)){
+        if (customerDAO.existsById(customerId)) {
             return mapping.convertToCUstomerDTO(customerDAO.getReferenceById(customerId));
-        }else {
+        } else {
             logger.warn("Customer not found: ID={}", customerId);
-            return new CustomerErrorResponse("0","Customer not found");
+            return new CustomerErrorResponse("0", "Customer not found");
         }
     }
 
