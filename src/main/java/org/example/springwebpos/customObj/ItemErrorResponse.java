@@ -10,6 +10,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 public class ItemErrorResponse implements ItemResponse, Serializable {
-    private int errorCode;
-    private String errorMessage;
+    private String status;
+    private String message;
 }

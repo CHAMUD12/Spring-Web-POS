@@ -53,8 +53,8 @@ public class ItemServiceIMPL implements ItemService {
             throw new ItemNotFound("Item not found");
         }else {
             tmpItemEntity.get().setDescription(incomeItemDTO.getDescription());
-            tmpItemEntity.get().setPrice(Double.parseDouble(incomeItemDTO.getPrice()));
-            tmpItemEntity.get().setQty(Integer.parseInt(incomeItemDTO.getQty()));
+            tmpItemEntity.get().setPrice(incomeItemDTO.getPrice());
+            tmpItemEntity.get().setQty(incomeItemDTO.getQty());
             logger.info("Item with code {} updated successfully", itemCode);
         }
     }
@@ -79,7 +79,7 @@ public class ItemServiceIMPL implements ItemService {
             return mapping.convertToItemDTO(itemDAO.getReferenceById(code));
         }else {
             logger.warn("Item with code {} not found", code);
-            return new ItemErrorResponse(0,"Item not found");
+            return new ItemErrorResponse("0","Item not found");
         }      }
 
     @Override

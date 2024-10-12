@@ -11,6 +11,6 @@ import org.example.springwebpos.customObj.ItemResponse;
 public class ItemDTO implements SuperDTO, ItemResponse {
     private String code;
     private String description;
-    private String price;
-    private String qty;
+    private double price;
+    private int qty;
 }
