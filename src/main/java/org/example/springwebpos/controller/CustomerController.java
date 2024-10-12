@@ -102,15 +102,52 @@ public class CustomerController {
     }
 
     @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> updateCustomer(
+    public ResponseEntity<CustomerErrorResponse> updateCustomer(
             @PathVariable("id") String id,
-            @RequestPart("updateName") String updateName,
-            @RequestPart("updateAddress") String updateAddress,
-            @RequestPart("updateMobile") String updateMobile,
-            @RequestPart("updateProfilePic") MultipartFile updateProfilePic
+            @RequestPart(value = "updateName", required = false) String updateName,
+            @RequestPart(value = "updateAddress", required = false) String updateAddress,
+            @RequestPart(value = "updateMobile", required = false) String updateMobile,
+            @RequestPart(value = "updateProfilePic", required = false) MultipartFile updateProfilePic
     ) {
         logger.info("Request to update customer: ID={}", id);
+
+        // Validate name
+        if (updateName == null) {
+            logger.error("Name is missing");
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Name is required"), HttpStatus.BAD_REQUEST);
+        }
+        if (!updateName.matches("^[a-zA-Z ]{3,20}$")) {
+            logger.error("Invalid name: Name must only contain letters and be between 3 and 20 characters long");
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Name must only contain letters and be between 3 and 20 characters long"), HttpStatus.BAD_REQUEST);
+        }
+
+        // Validate mobile
+        if (updateMobile == null) {
+            logger.error("Mobile number is missing");
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Mobile number is required"), HttpStatus.BAD_REQUEST);
+        }
+        if (!updateMobile.matches("^0\\d{9}$")) {
+            logger.error("Invalid mobile number: Mobile must be exactly 10 digits");
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Mobile must be exactly 10 digits"), HttpStatus.BAD_REQUEST);
+        }
+
+        // Validate address
+        if (updateAddress == null || updateAddress.isEmpty()) {
+            logger.error("Address is missing");
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Address is required"), HttpStatus.BAD_REQUEST);
+        }
+        if (!updateAddress.matches("^[a-zA-Z0-9, ]{1,100}$")) {
+            logger.error("Invalid address: Address can only contain letters, digits, commas, spaces, and must be max 100 characters");
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Address can only contain letters, digits, commas, spaces, and must be max 100 characters"), HttpStatus.BAD_REQUEST);
+        }
+
         try {
+            // Validate profile picture
+            if (updateProfilePic == null || updateProfilePic.isEmpty()) {
+                logger.error("Profile picture is missing");
+                return new ResponseEntity<>(new CustomerErrorResponse("error", "Profile picture is required"), HttpStatus.BAD_REQUEST);
+            }
+
             byte[] imageBytes = updateProfilePic.getBytes();
             String updateBase64ProfilePic = AppUtil.toBase64ProfilePic(imageBytes);
 
@@ -125,13 +162,16 @@ public class CustomerController {
             // Call the service to update the customer
             customerService.updateCustomer(updateCustomer);
             logger.info("Customer updated successfully: ID={}", id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(new CustomerErrorResponse("success", "Customer updated successfully"), HttpStatus.NO_CONTENT);
         } catch (CustomerNotFoundException e) {
             logger.warn("Customer not found for update: ID={}", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Customer not found"), HttpStatus.NOT_FOUND);
+        } catch (IOException e) {
+            logger.error("Error processing profile picture: {}", e.getMessage(), e);
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Error processing profile picture"), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             logger.error("Unexpected error while updating customer: ID={}, Error={}", id, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new CustomerErrorResponse("error", "Unexpected error occurred"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
