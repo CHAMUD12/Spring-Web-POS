@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -31,76 +32,104 @@ public class OrderServiceIMPL implements OrderService {
 
     @Override
     public OrderDTO placeOrder(OrderDTO orderDTO) {
-        logger.debug("Placing order for customer ID: {}", orderDTO.getCustomerId());
+        logger.info("Saving order for customer ID: {}", orderDTO.getCustomerId());
 
-        // Generate a unique Order ID if not provided
+        // Generate Order ID
         if (orderDTO.getOrderId() == null || orderDTO.getOrderId().isEmpty()) {
             orderDTO.setOrderId(AppUtil.createOrderId());
-            logger.debug("Generated new Order ID: {}", orderDTO.getOrderId());
+            logger.debug("Generated new order ID: {}", orderDTO.getOrderId());
         }
 
-        // Fetch and validate the CustomerEntity
-        Optional<CustomerEntity> customerOpt = customerDAO.findById(orderDTO.getCustomerId());
-        if (!customerOpt.isPresent()) {
-            logger.error("Customer not found with ID: {}", orderDTO.getCustomerId());
-            throw new RuntimeException("Customer not found with ID: " + orderDTO.getCustomerId());
-        }
-        CustomerEntity customer = customerOpt.get();
+        // Fetch and validate customer
+        CustomerEntity customer = customerDAO.findById(orderDTO.getCustomerId())
+                .orElseThrow(() -> {
+                    logger.error("Customer ID {} not found", orderDTO.getCustomerId());
+                    return new RuntimeException("Customer not found with ID: " + orderDTO.getCustomerId());
+                });
+        logger.debug("Customer name: {}", customer.getName());
 
-        // Convert OrderDTO to OrderEntity
+        // Convert DTO to Entity and set customer
         OrderEntity orderEntity = mapping.convertToOrderEntity(orderDTO);
         orderEntity.setCustomer(customer);
 
-        // Process Order Details
-        orderEntity.setOrderDetails(orderDTO.getOrderDetails().stream().map(orderDetailDTO -> {
-            logger.debug("Processing order detail for item: {}", orderDetailDTO.getItemCode());
+        logger.debug("Processing order details");
+        List<OrderDetailEntity> orderDetails = orderDTO.getOrderDetails().stream().map(orderDetailDTO -> {
             OrderDetailEntity orderDetail = new OrderDetailEntity();
             orderDetail.setOrder(orderEntity);
 
-            // Fetch and validate the ItemEntity
-            Optional<ItemEntity> itemOpt = itemDAO.findById(orderDetailDTO.getItemCode());
-            if (!itemOpt.isPresent()) {
-                logger.error("Item not found with code: {}", orderDetailDTO.getItemCode());
-                throw new RuntimeException("Item not found with code: " + orderDetailDTO.getItemCode());
-            }
-            ItemEntity item = itemOpt.get();
+            // Fetch and validate item
+            ItemEntity item = itemDAO.findById(orderDetailDTO.getItemCode())
+                    .orElseThrow(() -> {
+                        logger.error("Item ID {} not found", orderDetailDTO.getItemCode());
+                        return new RuntimeException("Item not found with code: " + orderDetailDTO.getItemCode());
+                    });
+            logger.debug("Found item: {}", item.getDescription());
 
-            // Check if sufficient quantity is available
+            // Check available quantity
             if (item.getQty() < orderDetailDTO.getQuantity()) {
-                logger.warn("Insufficient quantity for item: {}", item.getCode());
+                logger.error("Insufficient quantity for item: {} (requested: {}, available: {})",
+                        item.getCode(), orderDetailDTO.getQuantity(), item.getQty());
                 throw new RuntimeException("Insufficient quantity for item: " + item.getCode());
             }
 
-            // Update item quantity
+            // Update Item quantity
             item.setQty(item.getQty() - orderDetailDTO.getQuantity());
-            itemDAO.save(item); // Persist the updated item quantity
-            logger.debug("Updated item quantity for item: {}. Remaining stock: {}", item.getCode(), item.getQty());
+            logger.info("Updated item quantity for item: {}. New quantity: {}", item.getCode(), item.getQty());
+            itemDAO.save(item);
 
-            // Set Order Detail properties
+            // Set OrderDetail fields
             orderDetail.setItem(item);
             orderDetail.setQuantity(orderDetailDTO.getQuantity());
             orderDetail.setUnitPrice(orderDetailDTO.getUnitPrice());
-            orderDetail.setTotalPrice(orderDetailDTO.getTotalPrice());
+
+            // Get OrderDetail totalAmount (Temporarily)
+            double detailSubtotal = orderDetailDTO.getQuantity() * orderDetailDTO.getUnitPrice();
+            orderDetail.setTotalPrice(detailSubtotal);
 
             return orderDetail;
-        }).collect(Collectors.toList()));
+        }).collect(Collectors.toList());
 
-        // Calculate Subtotal
-        double subTotal = orderEntity.getOrderDetails().stream()
+        orderEntity.setOrderDetails(orderDetails);
+
+        // Calculate total
+        double subTotal = orderDetails.stream()
                 .mapToDouble(OrderDetailEntity::getTotalPrice)
                 .sum();
-        orderEntity.setSubTotal(subTotal);
+        orderEntity.setTotal(subTotal);
         logger.debug("Calculated subtotal: {}", subTotal);
 
-        // Calculate Total after discount
-        orderEntity.setTotal(subTotal - orderEntity.getDiscount());
-        logger.debug("Final order total after discount: {}", orderEntity.getTotal());
+        // Calculate discount
+        double discountPercent = orderDTO.getDiscount();
+        double discountAmount = subTotal * discountPercent / 100;
+        orderEntity.setDiscount(discountAmount);
+        logger.debug("Calculated discount amount ({}%): {}", discountPercent, discountAmount);
 
-        // Save the OrderEntity (OrderDetails are saved automatically due to CascadeType.ALL)
+        // Calculate subTotal after discount
+        double total = subTotal - discountAmount;
+        orderEntity.setSubTotal(total);
+        logger.debug("Total after discount: {}", total);
+
+        // Calculate balance
+        double cash = orderDTO.getCash();
+        double balance = cash - total;
+        orderEntity.setBalance(balance);
+        logger.debug("Calculated balance: {}", balance);
+
+        // Each Item discount Set OrderDetail table
+        if (subTotal > 0 && discountAmount > 0) {
+            for (OrderDetailEntity detail : orderDetails) {
+                double proportion = detail.getTotalPrice() / subTotal;
+                double detailDiscount = discountAmount * proportion;
+                double finalDetailTotal = detail.getTotalPrice() - detailDiscount;
+                detail.setTotalPrice(finalDetailTotal);
+                logger.debug("Applied discount to order detail ID {}: {} -> {}",
+                        detail.getId(), detail.getTotalPrice() + detailDiscount, finalDetailTotal);
+            }
+        }
+
+        // Save Order
         OrderEntity savedOrder = orderDAO.save(orderEntity);
-        logger.info("Order saved with ID: {}", savedOrder.getOrderId());
-
-        // Convert the saved OrderEntity back to OrderDTO
+        logger.info("Saved order: {}", savedOrder.getOrderId());
         return mapping.convertToOrderDTO(savedOrder);
     }
 }

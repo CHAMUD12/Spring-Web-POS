@@ -12,12 +12,12 @@ import java.util.List;
 @Data
 public class OrderDTO implements SuperDTO {
     private String orderId;
-    private String orderDate;
     private String customerId;
+    private String orderDate;
     private double total;
     private double discount;
     private double subTotal;
     private double cash;
     private double balance;
-    private List<OrderDetailDTO> orderDetails = new ArrayList<>();
+    private List<OrderDetailDTO> orderDetails;
 }

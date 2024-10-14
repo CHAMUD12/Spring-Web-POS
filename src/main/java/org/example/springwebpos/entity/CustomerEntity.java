@@ -1,15 +1,16 @@
 package org.example.springwebpos.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString(exclude = "orders")
 @Entity
 @Table(name = "customers")
 public class CustomerEntity implements SuperEntity {
@@ -22,5 +23,5 @@ public class CustomerEntity implements SuperEntity {
     @Column(columnDefinition = "LONGTEXT")
     private String profilePic;
     @OneToMany(mappedBy = "customer")
-    private List<OrderEntity> orders;
+    private List<OrderEntity> orders = new ArrayList<>();
 }

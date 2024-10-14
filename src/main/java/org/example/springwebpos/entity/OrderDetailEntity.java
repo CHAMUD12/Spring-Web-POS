@@ -1,13 +1,13 @@
 package org.example.springwebpos.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString(exclude = "order")
 @Entity
 @Table(name = "order_details")
 public class OrderDetailEntity implements SuperEntity {

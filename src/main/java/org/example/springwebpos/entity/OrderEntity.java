@@ -1,15 +1,16 @@
 package org.example.springwebpos.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"customer", "orderDetails"})
 @Table(name = "orders")
 @Entity
 public class OrderEntity implements SuperEntity {
@@ -25,5 +26,5 @@ public class OrderEntity implements SuperEntity {
     private double cash;
     private double balance;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderDetailEntity> orderDetails;
+    private List<OrderDetailEntity> orderDetails = new ArrayList<>();
 }
