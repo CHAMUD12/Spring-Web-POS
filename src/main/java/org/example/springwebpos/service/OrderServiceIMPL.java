@@ -9,6 +9,7 @@ import org.example.springwebpos.entity.CustomerEntity;
 import org.example.springwebpos.entity.ItemEntity;
 import org.example.springwebpos.entity.OrderDetailEntity;
 import org.example.springwebpos.entity.OrderEntity;
+import org.example.springwebpos.exception.InsufficientCashException;
 import org.example.springwebpos.util.AppUtil;
 import org.example.springwebpos.util.Mapping;
 import org.slf4j.Logger;
@@ -63,8 +64,7 @@ public class OrderServiceIMPL implements OrderService {
                         logger.error("Item ID {} not found", orderDetailDTO.getItemCode());
                         return new RuntimeException("Item not found with code: " + orderDetailDTO.getItemCode());
                     });
-            logger.debug("Found item: {}", item.getDescription());
-
+            logger.debug("Found item: {} with price {}", item.getDescription(), item.getPrice());
             // Check available quantity
             if (item.getQty() < orderDetailDTO.getQuantity()) {
                 logger.error("Insufficient quantity for item: {} (requested: {}, available: {})",
@@ -78,12 +78,12 @@ public class OrderServiceIMPL implements OrderService {
             itemDAO.save(item);
 
             // Set OrderDetail fields
+            double unitPrice = item.getPrice();
             orderDetail.setItem(item);
             orderDetail.setQuantity(orderDetailDTO.getQuantity());
-            orderDetail.setUnitPrice(orderDetailDTO.getUnitPrice());
+            orderDetail.setUnitPrice(unitPrice);
 
-            // Get OrderDetail totalAmount (Temporarily)
-            double detailSubtotal = orderDetailDTO.getQuantity() * orderDetailDTO.getUnitPrice();
+            double detailSubtotal = orderDetailDTO.getQuantity() * unitPrice;
             orderDetail.setTotalPrice(detailSubtotal);
 
             return orderDetail;
@@ -114,6 +114,12 @@ public class OrderServiceIMPL implements OrderService {
         double balance = cash - total;
         orderEntity.setBalance(balance);
         logger.debug("Calculated balance: {}", balance);
+
+        // Check if cash is enough to place the order
+        if (balance < 0) {
+            logger.warn("Insufficient cash for the order. Order cannot be placed.");
+            throw new InsufficientCashException("Insufficient cash for the order");
+        }
 
         // Each Item discount Set OrderDetail table
         if (subTotal > 0 && discountAmount > 0) {
